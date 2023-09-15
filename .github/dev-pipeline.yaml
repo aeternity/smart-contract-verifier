@@ -9,8 +9,6 @@ env:
   ENV: "dev"
   APP: "scv-gateway"
 
-concurrency: aescan_develop_environment
-
 jobs:
   main:
     runs-on: ubuntu-latest
