@@ -3,12 +3,12 @@ WORKDIR /usr/src/app
 EXPOSE 3001
 
 FROM base as prod
-ENV NODE_ENV=production
 COPY package.json ./
 COPY package-lock.json ./
 RUN npm install
 COPY . .
 RUN npm run build scv-worker
+ENV NODE_ENV=production
 CMD [ "node", "dist/apps/scv-gateway/main.js" ]
 
 FROM base as dev
