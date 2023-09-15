@@ -55,7 +55,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: aeternity/scv-gateway
+          images: aeternity/smart-contract-verifier
           tags: |
             type=raw,value=develop,enable=${{ endsWith(GitHub.ref, 'develop') }}
       
