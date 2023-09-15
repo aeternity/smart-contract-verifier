@@ -66,7 +66,7 @@ jobs:
           context: .
           file: ./apps/scv-gateway/dev/Dockerfile
           push: true
-          build-args: target=prod
+          target: prod
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
