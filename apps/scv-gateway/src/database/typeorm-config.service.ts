@@ -12,10 +12,16 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       type: 'postgres',
       host: this.configService.get('database.host' as any, { infer: true }),
       port: this.configService.get('database.port' as any, { infer: true }),
-      username: this.configService.get('database.username' as any, { infer: true }),
-      password: this.configService.get('database.password' as any, { infer: true }),
+      username: this.configService.get('database.username' as any, {
+        infer: true,
+      }),
+      password: this.configService.get('database.password' as any, {
+        infer: true,
+      }),
       database: this.configService.get('database.name' as any, { infer: true }),
-      synchronize: this.configService.get('database.synchronize' as any, { infer: true }),
+      synchronize: this.configService.get('database.synchronize' as any, {
+        infer: true,
+      }),
       dropSchema: false,
       keepConnectionAlive: true,
       logging:
