@@ -29,7 +29,7 @@ jobs:
       - run: npm ci
       - run: npm run lint:ci
   build:
-    name: Code linting
+    name: Projects building
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
