@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('contracts')
-export class Contract {
+@Entity('contract_source_files')
+export class ContractSourceFile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -9,11 +9,8 @@ export class Contract {
   contractId: string;
 
   @Column({ length: 127 })
-  license: string;
+  fileName: string;
 
-  @Column({ length: 63 })
-  compiler: string;
-
-  @Column({ length: 127 })
-  entryFile: string;
+  @Column()
+  content: string;
 }
