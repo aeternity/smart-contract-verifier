@@ -18,10 +18,8 @@ export class ContractSubmission {
   @Column({ length: 127 })
   entryFile: string;
 
-  @OneToMany(
-    () => ContractSubmissionSourceFile,
-    (file) => file.submission,
-    { cascade: true },
-  )
+  @OneToMany(() => ContractSubmissionSourceFile, (file) => file.submission, {
+    cascade: true,
+  })
   sourceFiles: ContractSubmissionSourceFile[];
 }

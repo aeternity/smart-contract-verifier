@@ -1,11 +1,6 @@
-import { IsNotEmpty, Validate } from 'class-validator';
-import { ContractIdValidator } from '../validators/contract-id.validator';
+import { IsNotEmpty } from 'class-validator';
 
 export class ContractSubmissionDto {
-  @IsNotEmpty()
-  @Validate(ContractIdValidator)
-  contractId: string;
-
   @IsNotEmpty()
   license: string;
 

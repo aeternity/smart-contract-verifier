@@ -7,24 +7,38 @@ import {
   UploadedFiles,
   HttpException,
   HttpStatus,
+  Param,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ContractsService } from './contracts.service';
 import { ContractSubmissionDto } from './dto/contract-submission.dto';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ContractFilesValidator } from './validators/contract-files.validator';
+import { ContractIdDto } from './dto/contract-id.dto';
 
 @Controller('contracts')
 export class ContractsController {
   constructor(private readonly contractsService: ContractsService) {}
 
-  @Post()
+  @Post(':contractId')
+  @ApiParam({ name: 'contractId', type: String })
+  @ApiResponse({
+    status: HttpStatus.ACCEPTED,
+    description: 'Contract submitted for verification',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNPROCESSABLE_ENTITY,
+    description: 'Contract source files issues',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Paylaod requirements not met',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        contractId: { type: 'string', format: 'uuid' },
         license: { type: 'string' },
         compiler: { type: 'string' },
         entryFile: { type: 'string' },
@@ -41,6 +55,7 @@ export class ContractsController {
   })
   @UseInterceptors(FilesInterceptor('sourceFiles'))
   submit(
+    @Param() params: ContractIdDto,
     @Body() contractSubmissionDto: ContractSubmissionDto,
     @UploadedFiles() sourceFiles: Array<Express.Multer.File>,
   ) {
@@ -59,7 +74,11 @@ export class ContractsController {
       );
     }
 
-    return this.contractsService.submit(contractSubmissionDto, sourceFiles);
+    return this.contractsService.submit(
+      params.contractId,
+      contractSubmissionDto,
+      sourceFiles,
+    );
   }
 
   @Get()

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ContractSubmissionDto } from './dto/contract-submission.dto';
 import { ContractSubmission } from './entities/contract-submission.entity';
 import { ContractSubmissionSourceFile } from './entities/contract-submission-source-file.entity';
+import { ContractSubmissionResponseDto } from './dto/contract-submission-response.dto';
 
 @Injectable()
 export class ContractsService {
@@ -12,12 +13,13 @@ export class ContractsService {
     private contractSubmissionsRepository: Repository<ContractSubmission>,
   ) {}
 
-  submit(
+  async submit(
+    contractId: string,
     contractSubmissionDto: ContractSubmissionDto,
     sourceFiles: Array<Express.Multer.File>,
-  ) {
+  ): Promise<ContractSubmissionResponseDto> {
     const contractSubmission = new ContractSubmission();
-    contractSubmission.contractId = contractSubmissionDto.contractId;
+    contractSubmission.contractId = contractId;
     contractSubmission.license = contractSubmissionDto.license;
     contractSubmission.compiler = contractSubmissionDto.compiler;
     contractSubmission.entryFile = contractSubmissionDto.entryFile;
@@ -30,8 +32,12 @@ export class ContractsService {
       contractSubmission.sourceFiles.push(sourceFile);
     }
 
-    this.contractSubmissionsRepository.save(contractSubmission);
-    return 'Contract submitted successfully';
+    const submittedContract =
+      await this.contractSubmissionsRepository.save(contractSubmission);
+    const contractSubmissionResponseDto = new ContractSubmissionResponseDto();
+
+    contractSubmissionResponseDto.submissionId = submittedContract.id;
+    return contractSubmissionResponseDto;
   }
 
   findAll() {

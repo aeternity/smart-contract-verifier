@@ -8,6 +8,7 @@ import { isAddressValid, Encoding } from '@aeternity/aepp-sdk';
 @ValidatorConstraint({ name: 'contractId', async: false })
 export class ContractIdValidator implements ValidatorConstraintInterface {
   validate(text: string) {
+    console.log('validating', text);
     return isAddressValid(text, Encoding.ContractAddress);
   }
 
