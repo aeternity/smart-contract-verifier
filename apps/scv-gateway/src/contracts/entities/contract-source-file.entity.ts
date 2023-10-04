@@ -8,8 +8,8 @@ export class ContractSourceFile {
   @Column({ length: 63 })
   contractId: string;
 
-  @Column({ length: 127 })
-  fileName: string;
+  @Column()
+  filePath: string;
 
   @Column()
   content: string;
