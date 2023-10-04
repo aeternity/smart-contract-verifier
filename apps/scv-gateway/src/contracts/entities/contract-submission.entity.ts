@@ -15,7 +15,7 @@ export class ContractSubmission {
   @Column({ length: 63 })
   compiler: string;
 
-  @Column({ length: 127 })
+  @Column()
   entryFile: string;
 
   @OneToMany(() => ContractSubmissionSourceFile, (file) => file.submission, {

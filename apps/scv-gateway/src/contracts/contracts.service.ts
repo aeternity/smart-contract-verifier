@@ -27,7 +27,7 @@ export class ContractsService {
 
     for (const file of sourceFiles) {
       const sourceFile = new ContractSubmissionSourceFile();
-      sourceFile.fileName = file.originalname;
+      sourceFile.filePath = file.originalname;
       sourceFile.content = file.buffer.toString();
       contractSubmission.sourceFiles.push(sourceFile);
     }

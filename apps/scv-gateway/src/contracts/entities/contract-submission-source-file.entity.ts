@@ -6,8 +6,8 @@ export class ContractSubmissionSourceFile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 127 })
-  fileName: string;
+  @Column()
+  filePath: string;
 
   @Column()
   content: string;

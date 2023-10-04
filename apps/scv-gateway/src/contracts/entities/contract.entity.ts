@@ -14,6 +14,6 @@ export class Contract {
   @Column({ length: 63 })
   compiler: string;
 
-  @Column({ length: 127 })
+  @Column()
   entryFile: string;
 }
