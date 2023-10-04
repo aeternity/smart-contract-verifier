@@ -1,6 +1,8 @@
 version: "3.8"
 services:
   scv-gateway:
+    depends_on:
+      - db
     build:
       context: .
       dockerfile: apps/scv-gateway/dev/Dockerfile
@@ -11,7 +13,16 @@ services:
     restart: always
     ports:
       - '3000:3000'
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: scv
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_SYNCHRONIZE: "true"
   # scv-worker:
+  #   depends_on:
+  #     - db
   #   build:
   #     context: .
   #     dockerfile: apps/scv-worker/dev/Dockerfile
@@ -22,3 +33,19 @@ services:
   #   restart: always
   #   ports:
   #     - '3001:3001'
+
+  db:
+    image: postgres:15.4-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+      - ./apps/scv-gateway/dev/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+
+volumes:
+  db:
+    driver: local
