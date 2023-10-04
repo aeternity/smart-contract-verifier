@@ -1,19 +1,16 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('contracts')
-export class Contract {
+@Entity('contract_source_files')
+export class ContractSourceFile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ length: 63 })
   contractId: string;
 
-  @Column({ length: 127 })
-  license: string;
-
-  @Column({ length: 63 })
-  compiler: string;
+  @Column()
+  filePath: string;
 
   @Column()
-  entryFile: string;
+  content: string;
 }
