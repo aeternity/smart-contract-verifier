@@ -8,13 +8,18 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ContractsService } from './contracts.service';
 import { ContractSubmissionDto } from './dto/contract-submission.dto';
 import { ApiBody, ApiConsumes, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ContractFilesValidator } from './validators/contract-files.validator';
 import { ContractIdDto } from './dto/contract-id.dto';
+import { ContractSubmissionStatusDto } from './dto/contract-submission-status.dto';
+import { VerificationStatus } from './entities/contract-submission.entity';
+import { ContractSubmissionStatusRequestDto } from './dto/contract-submission-status-request.dto';
 
 @Controller('contracts')
 export class ContractsController {
@@ -81,13 +86,39 @@ export class ContractsController {
     );
   }
 
-  @Get()
-  findAll() {
-    return this.contractsService.findAll();
-  }
+  @Get(':id/check/:submissionId')
+  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'submissionId', type: String })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Contract is still pending or verified successfully',
+    type: ContractSubmissionStatusDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Contract or submission matching that contract not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNPROCESSABLE_ENTITY,
+    description: 'Contract verification failed',
+    type: ContractSubmissionStatusDto,
+  })
+  async checkSubmissionStatus(
+    @Param() params: ContractSubmissionStatusRequestDto,
+    @Res() res: Response,
+  ) {
+    const verificationStatus =
+      await this.contractsService.checkSubmissionStatus(
+        params.id,
+        params.submissionId,
+      );
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.contractsService.findOne(+id);
-  // }
+    if (verificationStatus.status === VerificationStatus.FAIL) {
+      res.status(HttpStatus.UNPROCESSABLE_ENTITY);
+    } else {
+      res.status(HttpStatus.OK);
+    }
+
+    res.json(verificationStatus);
+  }
 }

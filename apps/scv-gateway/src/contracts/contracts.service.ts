@@ -2,9 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ContractSubmissionDto } from './dto/contract-submission.dto';
-import { ContractSubmission } from './entities/contract-submission.entity';
+import {
+  ContractSubmission,
+  VerificationStatus,
+} from './entities/contract-submission.entity';
 import { ContractSubmissionSourceFile } from './entities/contract-submission-source-file.entity';
 import { ContractSubmissionResponseDto } from './dto/contract-submission-response.dto';
+import { SubmissionNotFoundException } from './exceptions/submission-not-found.exception';
+import { ContractSubmissionStatusDto } from './dto/contract-submission-status.dto';
 
 @Injectable()
 export class ContractsService {
@@ -40,11 +45,28 @@ export class ContractsService {
     return contractSubmissionResponseDto;
   }
 
-  findAll() {
-    return this.contractSubmissionsRepository.find();
-  }
+  async checkSubmissionStatus(
+    contractId: string,
+    submissionId: string,
+  ): Promise<ContractSubmissionStatusDto> {
+    const submission = await this.contractSubmissionsRepository.findOne({
+      where: {
+        id: submissionId,
+        contractId,
+      },
+    });
 
-  findOne(id: string) {
-    return `This action returns a #${id} contract`;
+    if (!submission) {
+      throw new SubmissionNotFoundException(submissionId, contractId);
+    }
+
+    const contractSubmissionStatusDto = new ContractSubmissionStatusDto();
+    contractSubmissionStatusDto.status = submission.status;
+
+    if (submission.status === VerificationStatus.FAIL) {
+      contractSubmissionStatusDto.message = submission.result;
+    }
+
+    return contractSubmissionStatusDto;
   }
 }
