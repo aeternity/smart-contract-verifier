@@ -6,6 +6,7 @@ import { TypeOrmConfigService } from './database/typeorm-config.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ContractsModule } from './contracts/contracts.module';
+import { StatusModule } from './status/status.module';
 import databaseConfig from './config/database.config';
 import appConfig from './config/app.config';
 
@@ -23,6 +24,7 @@ import appConfig from './config/app.config';
       },
     }),
     ContractsModule,
+    StatusModule,
   ],
   controllers: [AppController],
   providers: [AppService],
