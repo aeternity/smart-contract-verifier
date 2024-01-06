@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ServiceStatusDto {
   @ApiProperty()
-  application_version: string;
+  applicationVersion: string;
 
   @ApiProperty()
-  last_migration?: string;
+  lastMigration?: string;
 }

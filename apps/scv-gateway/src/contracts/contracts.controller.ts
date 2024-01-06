@@ -9,17 +9,37 @@ import {
   HttpStatus,
   Param,
   Res,
+  Query,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ContractsService } from './contracts.service';
 import { ContractSubmissionDto } from './dto/contract-submission.dto';
-import { ApiBody, ApiConsumes, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiParam,
+  ApiProperty,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { ContractFilesValidator } from './validators/contract-files.validator';
 import { ContractIdDto } from './dto/contract-id.dto';
 import { ContractSubmissionStatusDto } from './dto/contract-submission-status.dto';
-import { VerificationStatus } from './entities/contract-submission.entity';
 import { ContractSubmissionStatusRequestDto } from './dto/contract-submission-status-request.dto';
+import { VerificationStatus } from '../verification/verification.types';
+import { VerifiedContractDto } from './dto/verified-contract.dto';
+import { ContractSourceFileDto } from './dto/contract-source-file.dto';
+
+class ContractSourceFiles {
+  @ApiProperty({ type: [ContractSourceFileDto] })
+  source: ContractSourceFileDto[];
+}
+
+class Contracts {
+  @ApiProperty({ type: [VerifiedContractDto] })
+  contracts: VerifiedContractDto[];
+}
 
 @Controller('contracts')
 export class ContractsController {
@@ -84,6 +104,60 @@ export class ContractsController {
       contractSubmissionDto,
       sourceFiles,
     );
+  }
+
+  @Get(':contractId')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Contract is verified',
+    type: VerifiedContractDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Contract is not found or not verified',
+  })
+  async getVerifiedContract(@Param('contractId') contractId: string) {
+    return this.contractsService.getVerifiedContract(contractId);
+  }
+
+  @Get('/')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Some of the requested contracts are verified',
+    type: VerifiedContractDto,
+  })
+  @ApiQuery({
+    name: 'ids',
+    type: [String],
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'None of the requested contracts are verified',
+  })
+  async getVerifiedContracts(
+    @Query('ids') contractIds: string[],
+  ): Promise<Contracts> {
+    return {
+      contracts: await this.contractsService.getVerifiedContracts(contractIds),
+    };
+  }
+
+  @Get('/:contractId/source')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Contract source code is available',
+    type: ContractSourceFiles,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Contract is not found or not verified',
+  })
+  async getVerifiedContractSource(
+    @Param('contractId') contractId: string,
+  ): Promise<ContractSourceFiles> {
+    return {
+      source: await this.contractsService.getVerifiedContractSource(contractId),
+    };
   }
 
   @Get(':id/check/:submissionId')
