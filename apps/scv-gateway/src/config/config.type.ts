@@ -1,5 +1,7 @@
 export type AppConfig = {
   nodeEnv: string;
+  aeMdwUrl: string;
+  workerPubKey: string;
 };
 
 export type DatabaseConfig = {
@@ -11,7 +13,15 @@ export type DatabaseConfig = {
   synchronize?: boolean;
 };
 
+export type MqConfig = {
+  host?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+};
+
 export type AllConfigType = {
   app: AppConfig;
   database: DatabaseConfig;
+  mq: MqConfig;
 };

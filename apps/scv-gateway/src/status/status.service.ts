@@ -7,13 +7,18 @@ export class StatusService {
   constructor(private dataSource: DataSource) {}
 
   async getStatus(): Promise<ServiceStatusDto> {
-    const lastMigrations = await this.dataSource.query(
-      'SELECT * FROM public.migrations ORDER BY id DESC LIMIT 1',
-    );
-
+    let lastMigration: string;
+    try {
+      const lastMigrations = await this.dataSource.query(
+        'SELECT name FROM migrations ORDER BY id DESC LIMIT 1',
+      );
+      lastMigration = lastMigrations[0]?.name;
+    } catch (e) {
+      lastMigration = 'unable to check';
+    }
     const serviceStatusDto: ServiceStatusDto = {
-      application_version: APPLICATION_VERSION,
-      last_migration: lastMigrations[0]?.name || 'none',
+      applicationVersion: APPLICATION_VERSION,
+      lastMigration: lastMigration,
     };
 
     return serviceStatusDto;

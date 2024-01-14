@@ -12,6 +12,8 @@ export class ContractSubmissionSourceFile {
   @Column()
   content: string;
 
-  @ManyToOne(() => ContractSubmission, (submission) => submission.sourceFiles)
+  @ManyToOne(() => ContractSubmission, (submission) => submission.sourceFiles, {
+    onDelete: 'CASCADE',
+  })
   submission: ContractSubmission;
 }

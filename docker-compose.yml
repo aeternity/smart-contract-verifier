@@ -3,6 +3,7 @@ services:
   scv-gateway:
     depends_on:
       - db
+      - rabbitmq
     build:
       context: .
       dockerfile: apps/scv-gateway/dev/Dockerfile
@@ -20,20 +21,42 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_SYNCHRONIZE: "true"
-  # scv-worker:
-  #   depends_on:
-  #     - db
-  #   build:
-  #     context: .
-  #     dockerfile: apps/scv-worker/dev/Dockerfile
-  #     target: dev
-  #   command: ["node", "apps/scv-worker/dev/docker-entry.dev.js"]
-  #   volumes:
-  #     - .:/usr/src/app
-  #   restart: always
-  #   ports:
-  #     - '3001:3001'
-
+      MQ_HOST: rabbitmq
+      MQ_PORT: 5672
+      MQ_USERNAME: rabbitmq
+      MQ_PASSWORD: rabbitmq
+      AE_MDW_URL: "https://mainnet.aeternity.io/mdw"
+      WORKER_PUB_KEY: "-----BEGIN PUBLIC KEY-----\nMIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgFlekfRTWDtwLu0BlUh4VfXq3tvK\nvb6mPncjQ9I/tGkRRo3dojvxWN7B+kQxt56nGsIffKwU6N6fTCvEMVIHR0ykuRrv\nRusE5axYiQI2rpipv9sjDeD5BaHOtdF7ihjxqKQTH7oB5+rxu81zgU/TMcSqPnNg\nUcvClEnXJz7hmxZ9AgMBAAE=\n-----END PUBLIC KEY-----"
+  scv-worker:
+    depends_on:
+      - rabbitmq
+      - scv-gateway
+    build:
+      context: .
+      dockerfile: apps/scv-worker/dev/Dockerfile
+      target: dev
+    command: ["node", "apps/scv-worker/dev/docker-entry.dev.js"]
+    volumes:
+      - .:/usr/src/app
+    restart: always
+    ports:
+      - '3001:3001'
+    environment:
+      MQ_HOST: rabbitmq
+      MQ_PORT: 5672
+      MQ_USERNAME: rabbitmq
+      MQ_PASSWORD: rabbitmq
+      GATEWAY_API_URL: http://scv-gateway:3000
+      WORKER_PRIV_KEY: "-----BEGIN RSA PRIVATE KEY-----\nMIICWgIBAAKBgFlekfRTWDtwLu0BlUh4VfXq3tvKvb6mPncjQ9I/tGkRRo3dojvx\nWN7B+kQxt56nGsIffKwU6N6fTCvEMVIHR0ykuRrvRusE5axYiQI2rpipv9sjDeD5\nBaHOtdF7ihjxqKQTH7oB5+rxu81zgU/TMcSqPnNgUcvClEnXJz7hmxZ9AgMBAAEC\ngYAVNc6qEAXGxY89jLyjYHv2S3Hs9CcoUkhM+j+kbJ4iuYjnLozMcTFIXP1KpgoQ\nS1ScceCi7qt9+oyXbo7OCxAupqBXK0y6FD0YxDCeZauZx5WsYDG1gxzZWn241tr9\nDdPQHbEP6xFThnsfWfKM3R/T40eIaVnROQwJmnJ0pU0MeQJBAJ6xooHV0CFzLW9e\nVdL3LfYoRhROYl7PxlcmWMj2l33X0tcWCkZLcOp7ta9Ko2dKJB+1TYunzHbMW8Lz\n+FB5Vo8CQQCQKv3qCVvq7t/uPwG9cyehALBQx3+TjhoFc04XvBgzlEhngKgxTdOq\ngslfQclLqsddnN7Yi2hJ8yPbtneVz6gzAkA3SojmV8rGfMzNyr54XKrk4y9Xj9/y\nTM48Ox4gFtq9e974FbPKvio/aI7q3kSEjm57pb249OPmWFl4WWyhDUW9AkArC6sk\n5gZ77zcNe+KZHnkGqZ37gJWnCRbb6cG3dIIFZJD51oBhuEsq7kISHyJrZWKBoQUo\nwvcwnVhnkePC523hAkBhTmPwXZXBHEu7jnO+j8CSlaQE3kd6QdT6nbp93HMzEbpz\nocxXGMBY01lPlI0UoOVlZnUmp6tfhvQjHNxh0Q8f\n-----END RSA PRIVATE KEY-----"
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbitmq
+      - RABBITMQ_DEFAULT_PASS=rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
   db:
     image: postgres:15.4-alpine
     restart: always

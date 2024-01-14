@@ -2,15 +2,15 @@ import { registerAs } from '@nestjs/config';
 import { AppConfig } from './config.type';
 
 export default registerAs<AppConfig>('app', () => {
-  if (!process.env.WORKER_PUB_KEY) {
+  if (!process.env.WORKER_PRIV_KEY) {
     throw new Error(
-      'WORKER_PUB_KEY env variable must be a valid PEM public key!',
+      'WORKER_PRIV_KEY env variable must be a valid PEM private key!',
     );
   }
 
   return {
     nodeEnv: process.env.NODE_ENV || 'development',
-    aeMdwUrl: process.env.AE_MDW_URL || 'https://mainnet.aeternity.io/mdw',
-    workerPubKey: process.env.WORKER_PUB_KEY,
+    workerId: process.env.WORKER_ID || 'unidentified-worker',
+    workerPrivKey: process.env.WORKER_PRIV_KEY,
   };
 });

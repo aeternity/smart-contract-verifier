@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { VerificationStatus } from '../entities/contract-submission.entity';
+import { VerificationStatus } from '../../verification/verification.types';
 
 export class ContractSubmissionStatusDto {
   @ApiProperty({

@@ -1,16 +1,19 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Contract } from './contract.entity';
 
 @Entity('contract_source_files')
 export class ContractSourceFile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 63 })
-  contractId: string;
-
   @Column()
   filePath: string;
 
   @Column()
   content: string;
+
+  @ManyToOne(() => Contract, (contract) => contract.id, {
+    onDelete: 'CASCADE',
+  })
+  contract: Contract;
 }
