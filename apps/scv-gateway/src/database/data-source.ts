@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import * as path from 'path';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -13,7 +14,7 @@ export const AppDataSource = new DataSource({
   dropSchema: false,
   keepConnectionAlive: true,
   logging: process.env.NODE_ENV !== 'production',
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  entities: [path.resolve(__dirname, '../**/*.entity{.ts,.js}')],
   migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
   cli: {
     entitiesDir: 'apps/scv-gateway/src',
