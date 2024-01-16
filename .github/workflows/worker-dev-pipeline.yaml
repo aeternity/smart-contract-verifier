@@ -9,6 +9,8 @@ env:
   ENV: "dev"
   APP: "scv-worker"
 
+concurrency: scv_develop_environment
+
 jobs:
   main:
     runs-on: ubuntu-latest
