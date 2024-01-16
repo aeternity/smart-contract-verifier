@@ -18,7 +18,7 @@ RUN npm install
 COPY . .
 RUN npm run build scv-worker
 ENV NODE_ENV=production
-CMD [ "node", "dist/apps/scv-gateway/main.js" ]
+CMD [ "node", "dist/apps/scv-worker/main.js" ]
 
 
 FROM base as dev
