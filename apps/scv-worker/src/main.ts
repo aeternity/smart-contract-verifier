@@ -17,7 +17,7 @@ async function bootstrap() {
           configService.get<MqConfig>('mq').port
         }`,
       ],
-      queue: 'verification_queue',
+      queue: configService.get<MqConfig>('mq').verificationQueue,
       noAck: false,
       prefetchCount: 1,
       queueOptions: {

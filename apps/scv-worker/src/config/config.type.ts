@@ -9,6 +9,7 @@ export type MqConfig = {
   port?: number;
   username?: string;
   password?: string;
+  verificationQueue?: string;
 };
 
 export type GatewayApiConfig = {

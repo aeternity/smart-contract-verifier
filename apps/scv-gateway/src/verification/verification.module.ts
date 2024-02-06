@@ -28,7 +28,7 @@ import { CompilersController } from './compilers.controller';
                 configService.get<MqConfig>('mq').port
               }`,
             ],
-            queue: 'verification_queue',
+            queue: configService.get<MqConfig>('mq').verificationQueue,
             queueOptions: {
               durable: true,
             },
