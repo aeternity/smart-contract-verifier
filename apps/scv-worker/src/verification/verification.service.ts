@@ -9,6 +9,8 @@ import { writeFile, readFile } from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { promisify } from 'util';
+import fs from 'fs/promises';
+
 const exec = promisify(execCallback);
 
 const CONCTRACT_DIRECTORY = `/usr/src/aesophia_cli/contract/`;
@@ -36,6 +38,15 @@ export class VerificationService {
       await Promise.all(
         task.sourceFiles.map(async (file) => {
           const filePath = path.resolve(CONCTRACT_DIRECTORY, file.filePath);
+
+          try {
+            await fs.mkdir(path.dirname(filePath), { recursive: true });
+          } catch (err) {
+            if (err.code !== 'EEXIST') {
+              throw err;
+            }
+          }
+
           return writeFile(filePath, file.content);
         }),
       );
@@ -66,7 +77,7 @@ export class VerificationService {
     } catch (error) {
       console.debug(`Generating ${task.submissionId} ACI failed`);
       processingNotification.result =
-        'Generating ACI out of provided sourcecode failed.';
+        'Generating ACI out of provided sourcecode failed. Please make sure that the provided source code can be compiled.';
       await this.sendVerificationNotification(
         task.contractId,
         processingNotification,
