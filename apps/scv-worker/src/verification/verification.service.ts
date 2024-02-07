@@ -9,7 +9,7 @@ import { writeFile, readFile } from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { promisify } from 'util';
-import fs from 'fs/promises';
+import { promises as fs } from 'fs';
 
 const exec = promisify(execCallback);
 
