@@ -27,7 +27,6 @@ import { ContractFilesValidator } from './validators/contract-files.validator';
 import { ContractIdDto } from './dto/contract-id.dto';
 import { ContractSubmissionStatusDto } from './dto/contract-submission-status.dto';
 import { ContractSubmissionStatusRequestDto } from './dto/contract-submission-status-request.dto';
-import { VerificationStatus } from '../verification/verification.types';
 import { VerifiedContractDto } from './dto/verified-contract.dto';
 import { ContractSourceFileDto } from './dto/contract-source-file.dto';
 
@@ -89,10 +88,10 @@ export class ContractsController {
     } catch (error) {
       throw new HttpException(
         {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          error: error.message,
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: [error.message],
         },
-        HttpStatus.UNPROCESSABLE_ENTITY,
+        HttpStatus.BAD_REQUEST,
         {
           cause: error.message,
         },
@@ -165,17 +164,12 @@ export class ContractsController {
   @ApiParam({ name: 'submissionId', type: String })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Contract is still pending or verified successfully',
+    description: 'Contract is still pending or verification is finished',
     type: ContractSubmissionStatusDto,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Contract or submission matching that contract not found',
-  })
-  @ApiResponse({
-    status: HttpStatus.UNPROCESSABLE_ENTITY,
-    description: 'Contract verification failed',
-    type: ContractSubmissionStatusDto,
   })
   async checkSubmissionStatus(
     @Param() params: ContractSubmissionStatusRequestDto,
@@ -187,12 +181,7 @@ export class ContractsController {
         params.submissionId,
       );
 
-    if (verificationStatus.status === VerificationStatus.FAIL) {
-      res.status(HttpStatus.UNPROCESSABLE_ENTITY);
-    } else {
-      res.status(HttpStatus.OK);
-    }
-
+    res.status(HttpStatus.OK);
     res.json(verificationStatus);
   }
 }
