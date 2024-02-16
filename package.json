@@ -1,7 +1,7 @@
 {
   "name": "ae-scv",
   "version": "0.0.1",
-  "description": "Aeternity Smart Contract Verification Service",
+  "description": "Aeternity Smart Contract Verifier",
   "author": "Luke Romanowicz",
   "private": true,
   "license": "ISC",
