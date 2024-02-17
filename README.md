@@ -8,12 +8,13 @@ Empower transparency and trust in the æternity ecosystem with a user-friendly R
 
 ## Key Features:
 
-- **REST API:** Expose a nintuitive REST API for easy integration into development workflows and tools.
-- **Multiversion Sophia support:** Supports all well-established versions of aesophia compilers to provide comprehensive coverage of smart contract verification.
+- **REST API:** Expose an intuitive REST API for easy integration into development workflows and tools.
+- **Multiversion Sophia support:** Supports all well-established versions of [aesophia compilers](https://github.com/aeternity/aesophia) to provide comprehensive coverage of smart contract verification.
 - **Public Source Code Repository:** Store publicly verified smart contracts source code, fostering transparency and knowledge sharing within the community.
-- **Run locally with docker:** To guarantee the highest level of trust anyone can simply clone this project and run the API locally with a single command - `docker compose up` 
+- **Run locally with docker:** To guarantee the highest level of trust anyone can simply clone this project and run the API locally with a single command - `docker compose up`
+- **Secure:** Rate limiting and user input verification enabled by default with the optional possibility to require (Recaptcha v3)[https://developers.google.com/recaptcha/docs/v3] tokens for contract submission
 
-By default the docker images are running in development mode.
+By default, the docker images are running in development mode.
 
 ## Target Audience:
 
