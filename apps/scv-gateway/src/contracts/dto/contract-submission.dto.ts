@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsIn } from 'class-validator';
+import { IsNotEmpty, IsIn, Validate } from 'class-validator';
 import { SUPPORTED_LICENSES } from '../contracts.const';
 import { SUPPORTED_COMPILERS } from '../../verification/verification.const';
+import { ContractFilenameValidator } from '../validators/contract-filename.validator';
 
 export class ContractSubmissionDto {
   @IsNotEmpty()
@@ -12,5 +13,6 @@ export class ContractSubmissionDto {
   compiler: (typeof SUPPORTED_COMPILERS)[number];
 
   @IsNotEmpty()
+  @Validate(ContractFilenameValidator)
   entryFile: string;
 }
