@@ -29,6 +29,7 @@ import { ContractSubmissionStatusDto } from './dto/contract-submission-status.dt
 import { ContractSubmissionStatusRequestDto } from './dto/contract-submission-status-request.dto';
 import { VerifiedContractDto } from './dto/verified-contract.dto';
 import { ContractSourceFileDto } from './dto/contract-source-file.dto';
+import { Throttle } from '@nestjs/throttler';
 
 class ContractSourceFiles {
   @ApiProperty({ type: [ContractSourceFileDto] })
@@ -78,6 +79,7 @@ export class ContractsController {
     },
   })
   @UseInterceptors(FilesInterceptor('sourceFiles'))
+  @Throttle({ short: { limit: 5, ttl: 60000 } })
   submit(
     @Param() params: ContractIdDto,
     @Body() contractSubmissionDto: ContractSubmissionDto,
