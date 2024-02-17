@@ -2,6 +2,7 @@ export type AppConfig = {
   nodeEnv: string;
   aeMdwUrl: string;
   workerPubKey: string;
+  recaptchaSecret: string;
 };
 
 export type DatabaseConfig = {

@@ -1,0 +1,48 @@
+<html>
+  <head>
+    <title>Generate recaptcha token for contract submission</title>
+  </head>
+  <body>
+    <h1>Generate recaptcha token for contract submission</h1>
+    <div id="content">
+      <button onclick="initialize()">Initialize app</button>
+    </div>
+
+    <script>
+      // Replace PUBLIC_CAPTCHA_KEY value with your own key
+      const PUBLIC_CAPTCHA_KEY = '';
+
+      function initialize() {
+        if (!PUBLIC_CAPTCHA_KEY) {
+          alert('Please replace PUBLIC_CAPTCHA_KEY in the source code with your own key');
+          return;
+        }
+        
+        const scriptElement = document.createElement("script");
+        scriptElement.setAttribute("src", `https://www.google.com/recaptcha/api.js?render=${PUBLIC_CAPTCHA_KEY}`);
+        document.body.appendChild(scriptElement);
+
+        document.getElementById('content').innerHTML = `
+        <button onclick="onClick()">
+          Generate new token
+        </button>
+        
+        <p>Token:</p>
+        <pre id="token" style="white-space: pre-wrap;"></pre>
+        `;
+      }
+
+      function onClick() {        
+        grecaptcha.ready(function() {
+          try {
+            grecaptcha.execute(PUBLIC_CAPTCHA_KEY, {action: 'submit'}).then(function(token) {
+              document.getElementById('token').textContent = token;
+            });
+          } catch(e) {
+            alert('Something went wrong. Perhaps you set a wrong key or this API is deprecated by Recaptcha. \n\n Error: ' + e);
+          }
+        });
+      }
+  </script>
+  </body>
+</html>

@@ -30,6 +30,10 @@ import { ContractSubmissionStatusRequestDto } from './dto/contract-submission-st
 import { VerifiedContractDto } from './dto/verified-contract.dto';
 import { ContractSourceFileDto } from './dto/contract-source-file.dto';
 import { Throttle } from '@nestjs/throttler';
+import { ConfigService } from '@nestjs/config';
+import { AllConfigType, AppConfig } from '../config/config.type';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 class ContractSourceFiles {
   @ApiProperty({ type: [ContractSourceFileDto] })
@@ -43,7 +47,11 @@ class Contracts {
 
 @Controller('contracts')
 export class ContractsController {
-  constructor(private readonly contractsService: ContractsService) {}
+  constructor(
+    private readonly contractsService: ContractsService,
+    private configService: ConfigService<AllConfigType>,
+    private readonly httpService: HttpService,
+  ) {}
 
   @Post(':contractId')
   @ApiParam({ name: 'contractId', type: String })
@@ -67,6 +75,7 @@ export class ContractsController {
         license: { type: 'string' },
         compiler: { type: 'string' },
         entryFile: { type: 'string' },
+        recaptchaToken: { type: 'string' },
         sourceFiles: {
           type: 'array',
           minItems: 1,
@@ -80,11 +89,56 @@ export class ContractsController {
   })
   @UseInterceptors(FilesInterceptor('sourceFiles'))
   @Throttle({ short: { limit: 5, ttl: 60000 } })
-  submit(
+  async submit(
     @Param() params: ContractIdDto,
     @Body() contractSubmissionDto: ContractSubmissionDto,
     @UploadedFiles() sourceFiles: Array<Express.Multer.File>,
   ) {
+    if (this.configService.get<AppConfig>('app').recaptchaSecret) {
+      if (!contractSubmissionDto.recaptchaToken) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: ['Recaptcha token is required'],
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      try {
+        const response = await firstValueFrom(
+          this.httpService.get(
+            `https://www.google.com/recaptcha/api/siteverify?secret=${
+              this.configService.get<AppConfig>('app').recaptchaSecret
+            }&response=${contractSubmissionDto?.recaptchaToken}`,
+          ),
+        );
+        if (!response.data.success) {
+          throw new HttpException(
+            {
+              statusCode: HttpStatus.BAD_REQUEST,
+              message: ['Recaptcha token is invalid'],
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        } else if (response.data.score < 0.5) {
+          throw new HttpException(
+            {
+              statusCode: HttpStatus.BAD_REQUEST,
+              message: ['Recaptcha token score is too low'],
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      } catch (error) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: ['Recaptcha token verification was not successful'],
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
     try {
       ContractFilesValidator.validate(contractSubmissionDto, sourceFiles);
     } catch (error) {

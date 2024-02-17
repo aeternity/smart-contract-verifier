@@ -15,4 +15,6 @@ export class ContractSubmissionDto {
   @IsNotEmpty()
   @Validate(ContractFilenameValidator)
   entryFile: string;
+
+  recaptchaToken?: string;
 }

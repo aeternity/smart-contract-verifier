@@ -28,6 +28,7 @@ services:
       MQ_VERIFICATION_QUEUE: verification_queue
       AE_MDW_URL: "https://mainnet.aeternity.io/mdw"
       WORKER_PUB_KEY: "-----BEGIN PUBLIC KEY-----\nMIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgFlekfRTWDtwLu0BlUh4VfXq3tvK\nvb6mPncjQ9I/tGkRRo3dojvxWN7B+kQxt56nGsIffKwU6N6fTCvEMVIHR0ykuRrv\nRusE5axYiQI2rpipv9sjDeD5BaHOtdF7ihjxqKQTH7oB5+rxu81zgU/TMcSqPnNg\nUcvClEnXJz7hmxZ9AgMBAAE=\n-----END PUBLIC KEY-----"
+      RECAPTCHA_SECRET: ""
   scv-worker:
     depends_on:
       - rabbitmq
