@@ -7,7 +7,7 @@ RUN apt-get -y upgrade
 RUN apt-get -y install --no-install-recommends elixir erlang-syntax-tools git
 RUN apt-get -y clean
 RUN rm -rf /var/lib/apt/lists/*
-RUN git clone --depth 1 --branch v7.4.0 https://github.com/aeternity/aesophia_cli.git /usr/src/aesophia_cli
+RUN git clone --depth 1 --branch v7.4.1 https://github.com/aeternity/aesophia_cli.git /usr/src/aesophia_cli
 RUN mkdir -p /usr/src/aesophia_cli/contract
 
 
