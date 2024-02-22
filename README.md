@@ -6,6 +6,8 @@ Empower transparency and trust in the æternity ecosystem with a user-friendly R
 - **Enhanced Transparency:** Foster a more transparent æternity landscape by enabling developers to publicly share their smart contract source code, promoting collaboration and trust.
 - **Improved Auditability:** Streamline the auditing process for external validators by providing a centralized platform for contract verification.
 
+Start using SCV today by visiting our [mainnet instance](https://scv-gateway.prd.service.aepps.com/api) or [testnet instance](https://scv-gateway-testnet.prd.service.aepps.com/api) respectively.
+
 ## Key Features:
 
 - **REST API:** Expose an intuitive REST API for easy integration into development workflows and tools.
@@ -27,7 +29,7 @@ By default, the docker images are running in development mode.
 2. **Run with docker:** `docker compose up`
 3. **Play with the API:** By default it's exposed under `localhost:3000/api`
 
-## Setting up development environment
+## Setting up a development environment
 ```
 docker compose up
 ```
