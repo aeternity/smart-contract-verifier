@@ -87,7 +87,9 @@ export class ContractsController {
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('sourceFiles'))
+  @UseInterceptors(
+    FilesInterceptor('sourceFiles', 1000, { preservePath: true }),
+  )
   @Throttle({ short: { limit: 5, ttl: 60000 } })
   async submit(
     @Param() params: ContractIdDto,

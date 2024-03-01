@@ -135,11 +135,13 @@ export class ContractsService {
   }
 
   async getVerifiedContracts(
-    contractIds: string[],
+    contractIds: string | string[],
   ): Promise<VerifiedContractDto[]> {
     const contracts = await this.contractRepository.find({
       where: {
-        contractId: In(contractIds),
+        contractId: In(
+          Array.isArray(contractIds) ? contractIds : [contractIds],
+        ),
       },
     });
 
