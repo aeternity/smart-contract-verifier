@@ -211,13 +211,39 @@ export class ContractsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Contract is not found or not verified',
   })
+  @ApiQuery({
+    name: 'zip',
+    type: Boolean,
+    description: 'Return source code as a zip file',
+    required: false,
+  })
   async getVerifiedContractSource(
+    @Res() res: Response,
     @Param('contractId') contractId: string,
-  ): Promise<ContractSourceFiles> {
-    return {
+    @Query('zip') zip?: string,
+  ): Promise<ContractSourceFiles | StreamableFile> {
+    if (zip && ['true', '1'].includes(zip)) {
+      res.set({
+        'Content-Type': 'text/plain',
+        'Content-Disposition': `attachment; filename="${contractId}.zip"`,
+      });
+      await this.contractsService.getVerifiedContractSource(
+        contractId,
+        zip && ['true', '1'].includes(zip) ? true : (false as any),
+        res,
+      );
+      return;
+    }
+
+    res.set({
+      'Content-Type': 'application/json',
+    });
+    res.status(HttpStatus.OK);
+    res.send({
       source: await this.contractsService.getVerifiedContractSource(contractId),
-    };
+    });
   }
+
   @Get('/:contractId/source/file')
   @ApiResponse({
     status: HttpStatus.OK,
@@ -229,9 +255,9 @@ export class ContractsController {
     description: 'Contract is not found or not verified or file not found',
   })
   async getVerifiedContractSourceFile(
+    @Res({ passthrough: true }) res: Response,
     @Param('contractId') contractId: string,
     @Query('path') filePath: string,
-    @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     const file = await this.contractsService.getVerifiedContractSourceFile(
       contractId,
