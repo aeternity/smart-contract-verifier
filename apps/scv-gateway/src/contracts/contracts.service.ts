@@ -15,6 +15,7 @@ import { Contract } from './entities/contract.entity';
 import { ContractSourceFile } from './entities/contract-source-file.entity';
 import { VerifiedContractDto } from './dto/verified-contract.dto';
 import { ContractSourceFileDto } from './dto/contract-source-file.dto';
+import { Readable } from 'stream';
 
 @Injectable()
 export class ContractsService {
@@ -195,6 +196,24 @@ export class ContractsService {
     }
 
     return sourceFiles;
+  }
+
+  async getVerifiedContractSourceFile(
+    contractId: string,
+    filePath: string,
+  ): Promise<Readable> {
+    const contractFiles = await this.getVerifiedContractSource(contractId);
+    const file = contractFiles.find((file) => file.filePath === filePath);
+
+    if (!file) {
+      throw new HttpException('File not found.', HttpStatus.NOT_FOUND);
+    }
+
+    const fileStream = new Readable();
+    fileStream.push(file.content);
+    fileStream.push(null);
+
+    return fileStream;
   }
 
   async confirmSubmission(

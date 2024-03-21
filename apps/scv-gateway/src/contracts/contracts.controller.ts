@@ -10,6 +10,7 @@ import {
   Param,
   Res,
   Query,
+  StreamableFile,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -34,6 +35,7 @@ import { ConfigService } from '@nestjs/config';
 import { AllConfigType, AppConfig } from '../config/config.type';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import * as path from 'path';
 
 class ContractSourceFiles {
   @ApiProperty({ type: [ContractSourceFileDto] })
@@ -215,6 +217,35 @@ export class ContractsController {
     return {
       source: await this.contractsService.getVerifiedContractSource(contractId),
     };
+  }
+  @Get('/:contractId/source/file')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Contract source file specified by the path',
+    type: ContractSourceFiles,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Contract is not found or not verified or file not found',
+  })
+  async getVerifiedContractSourceFile(
+    @Param('contractId') contractId: string,
+    @Query('path') filePath: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const file = await this.contractsService.getVerifiedContractSourceFile(
+      contractId,
+      filePath,
+    );
+
+    res.set({
+      'Content-Type': 'text/plain',
+      'Content-Disposition': `attachment; filename="${path.basename(
+        filePath,
+      )}"`,
+    });
+
+    return new StreamableFile(file);
   }
 
   @Get(':id/check/:submissionId')
