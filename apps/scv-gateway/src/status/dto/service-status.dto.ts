@@ -5,5 +5,17 @@ export class ServiceStatusDto {
   applicationVersion: string;
 
   @ApiProperty()
+  databaseConnection: 'OK' | 'DOWN';
+
+  @ApiProperty()
   lastMigration?: string;
+
+  @ApiProperty()
+  queueConnection: 'OK' | 'DOWN';
+
+  @ApiProperty()
+  middlewareConnection: 'OK' | 'DOWN';
+
+  @ApiProperty()
+  middlewareVersion?: string;
 }
