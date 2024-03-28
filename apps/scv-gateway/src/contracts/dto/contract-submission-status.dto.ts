@@ -9,7 +9,7 @@ export class ContractSubmissionStatusDto {
 
   @ApiProperty({
     required: false,
-    description: 'Error message if status is FAIL',
+    description: 'Error message details if status is FAIL',
   })
   message?: string;
 }

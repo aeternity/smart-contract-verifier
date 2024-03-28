@@ -19,6 +19,7 @@ import { ContractSubmissionDto } from './dto/contract-submission.dto';
 import {
   ApiBody,
   ApiConsumes,
+  ApiOperation,
   ApiParam,
   ApiProperty,
   ApiQuery,
@@ -36,6 +37,10 @@ import { AllConfigType, AppConfig } from '../config/config.type';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import * as path from 'path';
+import { ErrorDto } from '../shared/dto/error.dto';
+import { SUPPORTED_LICENSES } from './contracts.const';
+import { SUPPORTED_COMPILERS } from '../verification/verification.const';
+import { ContractSubmissionResponseDto } from './dto/contract-submission-response.dto';
 
 class ContractSourceFiles {
   @ApiProperty({ type: [ContractSourceFileDto] })
@@ -56,28 +61,60 @@ export class ContractsController {
   ) {}
 
   @Post(':contractId')
-  @ApiParam({ name: 'contractId', type: String })
+  @ApiOperation({
+    summary:
+      'Submit a contract for verification. If verified successfuly, the source code will be stored and made publicly available.',
+  })
+  @ApiParam({
+    name: 'contractId',
+    type: 'string',
+    example: 'ct_J3zBY8xxjsRr3QojETNw48Eb38fjvEuJKkQ6KzECvubvEcvCa',
+    description:
+      'The blockchain id of the contract to be submitted for verification',
+  })
   @ApiResponse({
     status: HttpStatus.ACCEPTED,
-    description: 'Contract submitted for verification',
+    description: 'Contract was successfully submitted for verification.',
+    type: ContractSubmissionResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.UNPROCESSABLE_ENTITY,
     description: 'Contract source files issues',
+    type: ErrorDto,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Paylaod requirements not met',
+    type: ErrorDto,
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        license: { type: 'string' },
-        compiler: { type: 'string' },
-        entryFile: { type: 'string' },
-        recaptchaToken: { type: 'string' },
+        license: {
+          type: 'string',
+          example: 'MIT',
+          enum: SUPPORTED_LICENSES,
+          description:
+            'License describing the usage rights of the contract source code',
+        },
+        compiler: {
+          type: 'string',
+          enum: SUPPORTED_COMPILERS,
+          example: SUPPORTED_COMPILERS[0],
+          description: 'aesophia compiler version used to compile the contract',
+        },
+        entryFile: {
+          type: 'string',
+          description: 'The name of the main file of the contract source code',
+          example: 'my_contract.aes',
+        },
+        recaptchaToken: {
+          type: 'string',
+          description:
+            'Recaptcha token is mandatory only if recaptchaSecret was configured in the service configuration',
+        },
         sourceFiles: {
           type: 'array',
           minItems: 1,
@@ -87,6 +124,7 @@ export class ContractsController {
           },
         },
       },
+      required: ['license', 'compiler', 'entryFile', 'sourceFiles'],
     },
   })
   @UseInterceptors(
@@ -166,6 +204,16 @@ export class ContractsController {
   }
 
   @Get(':contractId')
+  @ApiOperation({
+    summary: 'Get verification information about a verified contract.',
+  })
+  @ApiParam({
+    name: 'contractId',
+    type: 'string',
+    example: 'ct_J3zBY8xxjsRr3QojETNw48Eb38fjvEuJKkQ6KzECvubvEcvCa',
+    description:
+      'The blockchain id of the contract to check the verification data of',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Contract is verified',
@@ -174,12 +222,17 @@ export class ContractsController {
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Contract is not found or not verified',
+    type: ErrorDto,
   })
   async getVerifiedContract(@Param('contractId') contractId: string) {
     return this.contractsService.getVerifiedContract(contractId);
   }
 
   @Get('/')
+  @ApiOperation({
+    summary:
+      'Get verification batch information about several verified contracts.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Some of the requested contracts are verified',
@@ -187,11 +240,17 @@ export class ContractsController {
   })
   @ApiQuery({
     name: 'ids',
-    type: [String],
+    type: 'string',
+    isArray: true,
+    required: true,
+    description:
+      'The blockchain ids of the contracts to check the verification data of',
+    example: ['ct_J3zBY8xxjsRr3QojETNw48Eb38fjvEuJKkQ6KzECvubvEcvCa'],
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'None of the requested contracts are verified',
+    type: ErrorDto,
   })
   async getVerifiedContracts(
     @Query('ids') contractIds: string[],
@@ -202,14 +261,23 @@ export class ContractsController {
   }
 
   @Get('/:contractId/source')
+  @ApiOperation({ summary: 'Get verified contract source code.' })
+  @ApiParam({
+    name: 'contractId',
+    type: 'string',
+    example: 'ct_J3zBY8xxjsRr3QojETNw48Eb38fjvEuJKkQ6KzECvubvEcvCa',
+    description: 'The blockchain id of the contract to get the source code of',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Contract source code is available',
+    description:
+      'Contract source code is available. Can be returned as a json or a zip file',
     type: ContractSourceFiles,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Contract is not found or not verified',
+    type: ErrorDto,
   })
   @ApiQuery({
     name: 'zip',
@@ -224,7 +292,7 @@ export class ContractsController {
   ): Promise<ContractSourceFiles | StreamableFile> {
     if (zip && ['true', '1'].includes(zip)) {
       res.set({
-        'Content-Type': 'text/plain',
+        'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="${contractId}.zip"`,
       });
       await this.contractsService.getVerifiedContractSource(
@@ -245,6 +313,21 @@ export class ContractsController {
   }
 
   @Get('/:contractId/source/file')
+  @ApiOperation({
+    summary: 'Get single source code file of a verified contract.',
+  })
+  @ApiParam({
+    name: 'contractId',
+    type: 'string',
+    example: 'ct_J3zBY8xxjsRr3QojETNw48Eb38fjvEuJKkQ6KzECvubvEcvCa',
+    description: 'The blockchain id of the contract to get the source code of',
+  })
+  @ApiQuery({
+    name: 'path',
+    type: 'string',
+    example: 'contracts/my_contract.aes',
+    description: 'The path of the file to get the source code of',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Contract source file specified by the path',
@@ -253,6 +336,7 @@ export class ContractsController {
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Contract is not found or not verified or file not found',
+    type: ErrorDto,
   })
   async getVerifiedContractSourceFile(
     @Res({ passthrough: true }) res: Response,
@@ -274,9 +358,24 @@ export class ContractsController {
     return new StreamableFile(file);
   }
 
-  @Get(':id/check/:submissionId')
-  @ApiParam({ name: 'id', type: String })
-  @ApiParam({ name: 'submissionId', type: String })
+  @Get(':contractId/check/:submissionId')
+  @ApiOperation({
+    summary: 'Check progress and/or results of a contract verification.',
+  })
+  @ApiParam({
+    name: 'contractId',
+    type: 'string',
+    example: 'ct_J3zBY8xxjsRr3QojETNw48Eb38fjvEuJKkQ6KzECvubvEcvCa',
+    description:
+      'The blockchain id of the contract to check the verification progress of',
+  })
+  @ApiParam({
+    name: 'submissionId',
+    type: String,
+    description:
+      'UUID of the submission that may be used to query the status of the submission',
+    example: 'd3b3b3b3-3b3b-3b3b-3b3b-3b3b3b3b3b3b',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Contract is still pending or verification is finished',
@@ -285,6 +384,7 @@ export class ContractsController {
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Contract or submission matching that contract not found',
+    type: ErrorDto,
   })
   async checkSubmissionStatus(
     @Param() params: ContractSubmissionStatusRequestDto,
