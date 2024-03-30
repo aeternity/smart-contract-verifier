@@ -3,13 +3,12 @@ import { VerificationTaskDto } from './dto/verification-task.dto';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { VerificationNotificationDto } from './dto/verification-notification.dto';
-import { VerificationStatus } from 'apps/scv-gateway/src/verification/verification.types';
+import { VerificationStatus } from './verification.types';
 import { exec as execCallback } from 'child_process';
-import { writeFile, readFile } from 'fs/promises';
+import { writeFile, readFile, mkdir } from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { promisify } from 'util';
-import { promises as fs } from 'fs';
 
 const exec = promisify(execCallback);
 
@@ -40,7 +39,7 @@ export class VerificationService {
           const filePath = path.resolve(CONCTRACT_DIRECTORY, file.filePath);
 
           try {
-            await fs.mkdir(path.dirname(filePath), { recursive: true });
+            await mkdir(path.dirname(filePath), { recursive: true });
           } catch (err) {
             if (err.code !== 'EEXIST') {
               throw err;
@@ -75,7 +74,7 @@ export class VerificationService {
       );
       processingNotification.result = aci.toString();
     } catch (error) {
-      console.debug(`Generating ${task.submissionId} ACI failed`);
+      console.debug(`Generating ${task.submissionId} ACI failed`, error);
       processingNotification.result =
         'Generating ACI out of provided sourcecode failed. Please make sure that the provided source code can be compiled.';
       await this.sendVerificationNotification(

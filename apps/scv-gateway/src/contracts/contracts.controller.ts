@@ -172,6 +172,10 @@ export class ContractsController {
           );
         }
       } catch (error) {
+        if (error instanceof HttpException) {
+          throw error;
+        }
+
         throw new HttpException(
           {
             statusCode: HttpStatus.BAD_REQUEST,
