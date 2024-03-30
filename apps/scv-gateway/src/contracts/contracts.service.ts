@@ -15,6 +15,8 @@ import { Contract } from './entities/contract.entity';
 import { ContractSourceFile } from './entities/contract-source-file.entity';
 import { VerifiedContractDto } from './dto/verified-contract.dto';
 import { ContractSourceFileDto } from './dto/contract-source-file.dto';
+import { Readable, Writable } from 'stream';
+import * as archiver from 'archiver';
 
 @Injectable()
 export class ContractsService {
@@ -168,7 +170,19 @@ export class ContractsService {
 
   async getVerifiedContractSource(
     contractId: string,
-  ): Promise<ContractSourceFileDto[]> {
+    zip: true,
+    stream: Writable,
+  ): Promise<undefined>;
+  async getVerifiedContractSource(
+    contractId: string,
+    zip?: false,
+  ): Promise<ContractSourceFileDto[]>;
+  async getVerifiedContractSource(
+    contractId: string,
+    zip = false,
+    stream?: Writable,
+  ): Promise<ContractSourceFileDto[] | undefined> {
+    console.log('ZIP:', zip);
     const contract = await this.contractRepository.findOne({
       where: {
         contractId,
@@ -194,7 +208,42 @@ export class ContractsService {
       sourceFiles.push(sourceFileDto);
     }
 
-    return sourceFiles;
+    if (!zip) {
+      return sourceFiles;
+    }
+
+    const archive = archiver('zip', {
+      zlib: { level: 9 },
+    });
+
+    archive.pipe(stream);
+
+    sourceFiles.forEach((file) => {
+      archive.append(file.content, { name: file.filePath });
+    });
+
+    archive.finalize();
+  }
+
+  async getVerifiedContractSourceFile(
+    contractId: string,
+    filePath: string,
+  ): Promise<Readable> {
+    const contractFiles = await this.getVerifiedContractSource(
+      contractId,
+      false,
+    );
+    const file = contractFiles.find((file) => file.filePath === filePath);
+
+    if (!file) {
+      throw new HttpException('File not found.', HttpStatus.NOT_FOUND);
+    }
+
+    const fileStream = new Readable();
+    fileStream.push(file.content);
+    fileStream.push(null);
+
+    return fileStream;
   }
 
   async confirmSubmission(
