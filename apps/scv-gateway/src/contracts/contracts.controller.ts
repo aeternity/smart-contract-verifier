@@ -396,7 +396,7 @@ export class ContractsController {
   ) {
     const verificationStatus =
       await this.contractsService.checkSubmissionStatus(
-        params.id,
+        params.contractId,
         params.submissionId,
       );
 
