@@ -247,7 +247,8 @@ export class ContractsController {
           const fileNameStartPosition = trimmedLine.indexOf('"') + 1;
           const fileNameEndPosition = trimmedLine.lastIndexOf('"');
           const includedFile = trimmedLine.substring(
-            fileNameStartPosition, fileNameEndPosition,
+            fileNameStartPosition,
+            fileNameEndPosition,
           );
 
           filesToProcess.push(includedFile);
@@ -255,8 +256,8 @@ export class ContractsController {
       });
     }
 
-    sourceFiles = sourceFiles.filter(
-      (file) => includedFiles.includes(file.originalname),
+    sourceFiles = sourceFiles.filter((file) =>
+      includedFiles.includes(file.originalname),
     );
 
     return this.contractsService.submit(
