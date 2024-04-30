@@ -202,14 +202,20 @@ export class ContractsController {
 
     // Quick fix to exclude files that are not in entry file tree
     const defaultIncludes: string[] = [
-      'List.aes', 'Option.aes', 'String.aes',
-      'Func.aes', 'Pair.aes', 'Triple.aes',
-      'BLS12_381.aes', 'Frac.aes', 'Set.aes',
-      'Bitwise.aes',
+      'List.aes',
+      'Option.aes',
+      'String.aes',
+      'Func.aes',
+      'Pair.aes',
+      'Triple.aes',
+      'BLS12_381.aes',
+      'Frac.aes',
+      'Set.aes',
+      'Bitwise.aes'
     ];
 
-    let includedFiles: string[] = [];
-    let filesToProcess: string[] = [contractSubmissionDto.entryFile];
+    const includedFiles: string[] = [];
+    const filesToProcess: string[] = [contractSubmissionDto.entryFile];
 
     while (filesToProcess.length !== 0) {
       const currentFile = filesToProcess.pop();
@@ -222,7 +228,7 @@ export class ContractsController {
         includedFiles.push(currentFile);
       }
 
-      const file = sourceFiles.find(file => file.originalname === currentFile);
+      const file = sourceFiles.find((file) => file.originalname === currentFile);
 
       if (!file) {
         console.error(`File ${currentFile} not found in sourceFiles`);
@@ -232,7 +238,7 @@ export class ContractsController {
       const content = file.buffer.toString();
       const lines = content.split('\n');
 
-      lines.forEach(line => {
+      lines.forEach((line) => {
         const trimmedLine = line.trim();
 
         if (trimmedLine.startsWith('include')) {
@@ -246,7 +252,7 @@ export class ContractsController {
       });
     }
 
-    sourceFiles = sourceFiles.filter(file => includedFiles.includes(file.originalname));
+    sourceFiles = sourceFiles.filter((file) => includedFiles.includes(file.originalname));
 
     return this.contractsService.submit(
       params.contractId,
