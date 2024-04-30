@@ -136,8 +136,6 @@ export class ContractsController {
     @Body() contractSubmissionDto: ContractSubmissionDto,
     @UploadedFiles() sourceFiles: Array<Express.Multer.File>,
   ) {
-    console.log('params aaaa', params);
-    console.log('ContractSubmissionDto aaaa', contractSubmissionDto.entryFile);
     if (this.configService.get<AppConfig>('app').recaptchaSecret) {
       if (!contractSubmissionDto.recaptchaToken) {
         throw new HttpException(
@@ -444,7 +442,6 @@ export class ContractsController {
     @Param() params: ContractSubmissionStatusRequestDto,
     @Res() res: Response,
   ) {
-    console.log('aaaa check');
     const verificationStatus =
       await this.contractsService.checkSubmissionStatus(
         params.contractId,
