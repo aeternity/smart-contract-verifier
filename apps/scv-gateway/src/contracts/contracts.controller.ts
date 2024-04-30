@@ -211,7 +211,7 @@ export class ContractsController {
       'BLS12_381.aes',
       'Frac.aes',
       'Set.aes',
-      'Bitwise.aes'
+      'Bitwise.aes',
     ];
 
     const includedFiles: string[] = [];
@@ -228,7 +228,9 @@ export class ContractsController {
         includedFiles.push(currentFile);
       }
 
-      const file = sourceFiles.find((file) => file.originalname === currentFile);
+      const file = sourceFiles.find(
+        (file) => file.originalname === currentFile,
+      );
 
       if (!file) {
         console.error(`File ${currentFile} not found in sourceFiles`);
@@ -244,15 +246,18 @@ export class ContractsController {
         if (trimmedLine.startsWith('include')) {
           const fileNameStartPosition = trimmedLine.indexOf('"') + 1;
           const fileNameEndPosition = trimmedLine.lastIndexOf('"');
-          const includedFile =
-            trimmedLine.substring(fileNameStartPosition, fileNameEndPosition);
+          const includedFile = trimmedLine.substring(
+            fileNameStartPosition, fileNameEndPosition,
+          );
 
           filesToProcess.push(includedFile);
         }
       });
     }
 
-    sourceFiles = sourceFiles.filter((file) => includedFiles.includes(file.originalname));
+    sourceFiles = sourceFiles.filter(
+      (file) => includedFiles.includes(file.originalname),
+    );
 
     return this.contractsService.submit(
       params.contractId,
