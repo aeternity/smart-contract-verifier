@@ -136,6 +136,8 @@ export class ContractsController {
     @Body() contractSubmissionDto: ContractSubmissionDto,
     @UploadedFiles() sourceFiles: Array<Express.Multer.File>,
   ) {
+    console.log('params aaaa', params);
+    console.log('ContractSubmissionDto aaaa', contractSubmissionDto.entryFile);
     if (this.configService.get<AppConfig>('app').recaptchaSecret) {
       if (!contractSubmissionDto.recaptchaToken) {
         throw new HttpException(
@@ -199,6 +201,54 @@ export class ContractsController {
         },
       );
     }
+
+    // Quick fix to exclude files that are not in entry file tree
+    const defaultIncludes: string[] = [
+      'List.aes', 'Option.aes', 'String.aes',
+      'Func.aes', 'Pair.aes', 'Triple.aes',
+      'BLS12_381.aes', 'Frac.aes', 'Set.aes',
+      'Bitwise.aes',
+    ];
+
+    let includedFiles: string[] = [];
+    let filesToProcess: string[] = [contractSubmissionDto.entryFile];
+
+    while (filesToProcess.length !== 0) {
+      const currentFile = filesToProcess.pop();
+
+      if (includedFiles.includes(currentFile)) {
+        continue;
+      }
+
+      if (!defaultIncludes.includes(currentFile)) {
+        includedFiles.push(currentFile);
+      }
+
+      const file = sourceFiles.find(file => file.originalname === currentFile);
+
+      if (!file) {
+        console.error(`File ${currentFile} not found in sourceFiles`);
+        continue;
+      }
+
+      const content = file.buffer.toString();
+      const lines = content.split('\n');
+
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+
+        if (trimmedLine.startsWith('include')) {
+          const fileNameStartPosition = trimmedLine.indexOf('"') + 1;
+          const fileNameEndPosition = trimmedLine.lastIndexOf('"');
+          const includedFile =
+            trimmedLine.substring(fileNameStartPosition, fileNameEndPosition);
+
+          filesToProcess.push(includedFile);
+        }
+      });
+    }
+
+    sourceFiles = sourceFiles.filter(file => includedFiles.includes(file.originalname));
 
     return this.contractsService.submit(
       params.contractId,
@@ -394,6 +444,7 @@ export class ContractsController {
     @Param() params: ContractSubmissionStatusRequestDto,
     @Res() res: Response,
   ) {
+    console.log('aaaa check');
     const verificationStatus =
       await this.contractsService.checkSubmissionStatus(
         params.contractId,
