@@ -1,6 +1,7 @@
 export const SUPPORTED_LICENSES = [
   'None',
   'Unlicense',
+  'ISC',
   'MIT',
   'GNU GPLv2',
   'GNU GPLv3',
