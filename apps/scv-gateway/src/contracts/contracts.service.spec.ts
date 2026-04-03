@@ -52,7 +52,6 @@ describe('ContractsService', () => {
   describe('submit', () => {
     it('throws error if contract has been already verified', async () => {
       const contractSubmissionDto: ContractSubmissionDto = {
-        compiler: '1.2.3',
         entryFile: 'main.aes',
         license: 'MIT',
       };
@@ -71,7 +70,6 @@ describe('ContractsService', () => {
 
     it('throws error if contract has been already verified', async () => {
       const contractSubmissionDto: ContractSubmissionDto = {
-        compiler: '1.2.3',
         entryFile: 'main.aes',
         license: 'MIT',
       };
@@ -91,7 +89,6 @@ describe('ContractsService', () => {
 
     it('returns saves contract submission and returns its id', async () => {
       const contractSubmissionDto: ContractSubmissionDto = {
-        compiler: '1.2.3',
         entryFile: 'main.aes',
         license: 'MIT',
       };

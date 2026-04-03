@@ -9,6 +9,12 @@ import { when } from 'jest-when';
 import * as fs from 'fs/promises';
 import { exec as execCallback } from 'child_process';
 
+jest.mock('@aeternity/aepp-calldata', () => ({
+  ContractEncoder: jest.fn().mockImplementation(() => ({
+    decode: jest.fn().mockReturnValue({ compilerVersion: '7.0.0' }),
+  })),
+}));
+
 jest.mock('child_process', () => ({
   exec: jest.fn((command, cb) => cb()),
 }));
@@ -21,6 +27,7 @@ const SAMPLE_RSA_KEY =
 
 describe('VerificationService', () => {
   let service: VerificationService;
+  let mockDecode: jest.SpyInstance;
 
   const httpService = {
     get: jest.fn(),
@@ -29,6 +36,10 @@ describe('VerificationService', () => {
   const configService = {
     get: jest.fn(),
   };
+
+  beforeAll(() => {
+    // Intentionally empty — mockDecode is captured per-test via jest.spyOn(service['contractEncoder'], 'decode')
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -40,6 +51,9 @@ describe('VerificationService', () => {
     }).compile();
 
     service = module.get<VerificationService>(VerificationService);
+    mockDecode = jest
+      .spyOn(service['contractEncoder'], 'decode')
+      .mockReturnValue({ compilerVersion: '7.0.0' } as any);
   });
 
   afterEach(() => {
@@ -176,32 +190,19 @@ describe('VerificationService', () => {
       );
     });
 
-    it('reports fail if checking the compiler version fails', async () => {
+    it('reports fail if bytecode detection fails', async () => {
       const task: VerificationTaskDto = {
         submissionId: '11111111-1111-1111-1111-111111111111',
         contractId: 'ct_123456789',
-        sourceFiles: [
-          {
-            filePath: 'file.aes',
-            content: 'mock',
-          },
-        ],
+        sourceFiles: [],
         bytecode: 'mock',
-        compiler: '7.0.0',
         entryFile: 'mock',
         encodedInitCallParameters: 'mock',
       };
 
-      mockedFs.mkdir.mockResolvedValue(undefined);
-      mockedFs.writeFile.mockResolvedValue(undefined);
-      when(mockedFs.readFile)
-        .calledWith(expect.stringContaining('_result.json'))
-        .mockResolvedValue('mock');
-      when(execCallback)
-        .calledWith(expect.stringContaining('--compiled_by'), expect.anything())
-        .mockImplementation((_cmd, cb) =>
-          cb(new Error('Error during checking compiler version')),
-        );
+      mockDecode.mockImplementationOnce(() => {
+        throw new Error('invalid bytecode');
+      });
 
       when(configService.get)
         .calledWith('app')
@@ -219,54 +220,7 @@ describe('VerificationService', () => {
           submissionId: '11111111-1111-1111-1111-111111111111',
           status: 'fail',
           result:
-            'Unable to verify compiler version. Bytecode of this contract seems not to be supported.',
-        },
-        expect.anything(),
-      );
-    });
-
-    it('reports fail if the compiler version does not match the expected one', async () => {
-      const task: VerificationTaskDto = {
-        submissionId: '11111111-1111-1111-1111-111111111111',
-        contractId: 'ct_123456789',
-        sourceFiles: [
-          {
-            filePath: 'file.aes',
-            content: 'mock',
-          },
-        ],
-        bytecode: 'mock',
-        compiler: '7.0.0',
-        entryFile: 'mock',
-        encodedInitCallParameters: 'mock',
-      };
-
-      mockedFs.mkdir.mockResolvedValue(undefined);
-      mockedFs.writeFile.mockResolvedValue(undefined);
-      when(mockedFs.readFile)
-        .calledWith(expect.stringContaining('_result.json'))
-        .mockResolvedValue('mock');
-      when(execCallback)
-        .calledWith(expect.stringContaining('--compiled_by'), expect.anything())
-        .mockImplementation((_cmd, cb) => cb(undefined, { stdout: '7.4.0' }));
-
-      when(configService.get)
-        .calledWith('app')
-        .mockReturnValue({ workerId: 123, workerPrivKey: SAMPLE_RSA_KEY });
-      when(configService.get)
-        .calledWith('gateway-api')
-        .mockReturnValue({ url: 'https://gateway-url' });
-
-      await service.processVerificationTask(task);
-
-      expect(httpService.post).toHaveBeenCalledWith(
-        'https://gateway-url/verification/notify/ct_123456789',
-        {
-          source: 123,
-          submissionId: '11111111-1111-1111-1111-111111111111',
-          status: 'fail',
-          result:
-            'The provided compiler version (7.0.0) does not match the one used to compile the contract.',
+            'Unable to detect compiler version from bytecode. The bytecode may not be a valid Sophia contract.',
         },
         expect.anything(),
       );
@@ -295,8 +249,6 @@ describe('VerificationService', () => {
         .mockResolvedValue('mock');
 
       when(execCallback)
-        .calledWith(expect.stringContaining('--compiled_by'), expect.anything())
-        .mockImplementation((_cmd, cb) => cb(undefined, { stdout: '7.0.0' }))
         .calledWith(expect.stringContaining('--validate'), expect.anything())
         .mockImplementation((_cmd, cb) =>
           cb(new Error('Error during validation')),
@@ -346,8 +298,6 @@ describe('VerificationService', () => {
         .mockResolvedValue('mock');
 
       when(execCallback)
-        .calledWith(expect.stringContaining('--compiled_by'), expect.anything())
-        .mockImplementation((_cmd, cb) => cb(undefined, { stdout: '7.0.0' }))
         .calledWith(expect.stringContaining('--validate'), expect.anything())
         .mockImplementation((_cmd, cb) => cb(undefined, { stdout: 'mock' }))
         .calledWith(
@@ -402,8 +352,6 @@ describe('VerificationService', () => {
         .mockResolvedValue('mock');
 
       when(execCallback)
-        .calledWith(expect.stringContaining('--compiled_by'), expect.anything())
-        .mockImplementation((_cmd, cb) => cb(undefined, { stdout: '7.0.0' }))
         .calledWith(expect.stringContaining('--validate'), expect.anything())
         .mockImplementation((_cmd, cb) => cb(undefined, { stdout: 'mock' }))
         .calledWith(
@@ -424,6 +372,7 @@ describe('VerificationService', () => {
       expect(httpService.post).toHaveBeenCalledWith(
         'https://gateway-url/verification/notify/ct_123456789',
         {
+          compiler: '7.0.0',
           initCallParameters: 'mock',
           result: 'mock',
           source: 123,
@@ -432,6 +381,9 @@ describe('VerificationService', () => {
         },
         expect.anything(),
       );
+      mockDecode = jest
+        .spyOn(service['contractEncoder'], 'decode')
+        .mockReturnValue({ compilerVersion: '7.0.0' } as any);
     });
   });
 

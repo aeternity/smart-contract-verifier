@@ -51,7 +51,6 @@ describe('ContractsController', () => {
         { contractId: 'ct_12345' },
         {
           license: 'MIT',
-          compiler: '1.2.3',
           entryFile: 'main.aes',
           recaptchaToken: 'invalid',
         },
@@ -66,7 +65,7 @@ describe('ContractsController', () => {
         .mockReturnValue({ recaptchaSecret: 'mock' });
       const submitRequest = controller.submit(
         { contractId: 'ct_12345' },
-        { license: 'MIT', compiler: '1.2.3', entryFile: 'main.aes' },
+        { license: 'MIT', entryFile: 'main.aes' },
         [],
       );
       expect(submitRequest).rejects.toThrowError();
@@ -81,7 +80,6 @@ describe('ContractsController', () => {
         { contractId: 'ct_12345' },
         {
           license: 'MIT',
-          compiler: '1.2.3',
           entryFile: 'main.aes',
           recaptchaToken: 'invalid',
         },
@@ -101,7 +99,6 @@ describe('ContractsController', () => {
         { contractId: 'ct_12345' },
         {
           license: 'MIT',
-          compiler: '1.2.3',
           entryFile: 'main.aes',
           recaptchaToken: 'invalid',
         },
@@ -119,7 +116,6 @@ describe('ContractsController', () => {
         { contractId: 'ct_12345' },
         {
           license: 'MIT',
-          compiler: '1.2.3',
           entryFile: 'main.aes',
           recaptchaToken: 'invalid',
         },
@@ -136,7 +132,7 @@ describe('ContractsController', () => {
       });
       const submitRequest = controller.submit(
         { contractId: 'ct_12345' },
-        { license: 'MIT', compiler: '1.2.3', entryFile: 'main.aes' },
+        { license: 'MIT', entryFile: 'main.aes' },
         [],
       );
       expect(submitRequest).resolves.toEqual({ submissionId: 'submission_id' });

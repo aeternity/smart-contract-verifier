@@ -50,7 +50,6 @@ export class ContractsService {
     const contractSubmission = new ContractSubmission();
     contractSubmission.contractId = contractId;
     contractSubmission.license = contractSubmissionDto.license;
-    contractSubmission.compiler = contractSubmissionDto.compiler;
     contractSubmission.entryFile = contractSubmissionDto.entryFile;
     contractSubmission.sourceFiles = [];
 

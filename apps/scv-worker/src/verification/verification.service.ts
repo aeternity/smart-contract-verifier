@@ -5,10 +5,11 @@ import { HttpService } from '@nestjs/axios';
 import { VerificationNotificationDto } from './dto/verification-notification.dto';
 import { VerificationStatus } from './verification.types';
 import { exec as execCallback } from 'child_process';
-import { writeFile, readFile, mkdir } from 'fs/promises';
+import { writeFile, readFile, mkdir, access } from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { promisify } from 'util';
+import { ContractEncoder } from '@aeternity/aepp-calldata';
 
 const exec = promisify(execCallback);
 
@@ -17,6 +18,8 @@ const COMPILERS_BASE = `/usr/src/compilers/`;
 
 @Injectable()
 export class VerificationService {
+  private readonly contractEncoder = new ContractEncoder();
+
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
@@ -31,7 +34,46 @@ export class VerificationService {
       status: VerificationStatus.FAIL,
     };
 
-    const cliPath = `${COMPILERS_BASE}${task.compiler}/aesophia_cli`;
+    // DETECT COMPILER VERSION FROM BYTECODE
+    let detectedCompiler: string;
+    try {
+      detectedCompiler = (
+        this.contractEncoder.decode(task.bytecode as `cb_${string}`) as {
+          compilerVersion: string;
+        }
+      ).compilerVersion;
+    } catch (error) {
+      processingNotification.result =
+        'Unable to detect compiler version from bytecode. The bytecode may not be a valid Sophia contract.';
+      console.warn(
+        'Unable to detect compiler version from bytecode.',
+        task.submissionId,
+        error,
+      );
+      await this.sendVerificationNotification(
+        task.contractId,
+        processingNotification,
+      );
+      return;
+    }
+
+    const cliPath = `${COMPILERS_BASE}${detectedCompiler}/aesophia_cli`;
+
+    // CHECK IF CLI BINARY EXISTS FOR DETECTED VERSION
+    try {
+      await access(cliPath);
+    } catch {
+      processingNotification.result = `Compiler version ${detectedCompiler} is not supported.`;
+      console.warn(
+        `Compiler version ${detectedCompiler} is not supported.`,
+        task.submissionId,
+      );
+      await this.sendVerificationNotification(
+        task.contractId,
+        processingNotification,
+      );
+      return;
+    }
 
     // WRITE CONTRACT FILES FOR VERIFICATION
     try {
@@ -89,37 +131,6 @@ export class VerificationService {
       return;
     }
 
-    // VERIFY COMPILER VERSION
-    try {
-      const { stdout } = await exec(
-        `${cliPath} --compiled_by ${task.bytecode}`,
-      );
-      const compilerVersion = stdout.trim();
-      if (task.compiler !== compilerVersion) {
-        processingNotification.result = `The provided compiler version (${task.compiler}) does not match the one used to compile the contract.`;
-        console.debug(
-          `The provided compiler version (${task.compiler}) does not match the one used to compile the contract (${compilerVersion}).`,
-        );
-        await this.sendVerificationNotification(
-          task.contractId,
-          processingNotification,
-        );
-        return;
-      }
-    } catch (error) {
-      processingNotification.result =
-        'Unable to verify compiler version. Bytecode of this contract seems not to be supported.';
-      console.warn(
-        'Unable to verify compiler version. Bytecode of this contract seems not to be supported.',
-        task.submissionId,
-      );
-      await this.sendVerificationNotification(
-        task.contractId,
-        processingNotification,
-      );
-      return;
-    }
-
     // VERIFY BYTECODE
     try {
       await exec(
@@ -167,6 +178,7 @@ export class VerificationService {
     );
 
     processingNotification.status = VerificationStatus.SUCCESS;
+    processingNotification.compiler = detectedCompiler;
     await this.sendVerificationNotification(
       task.contractId,
       processingNotification,
