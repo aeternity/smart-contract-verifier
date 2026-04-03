@@ -1,4 +1,6 @@
 export const SUPPORTED_COMPILERS = [
+  '8.0.1',
+  '8.0.0',
   '7.4.1',
   '7.4.0',
   '7.3.0',
