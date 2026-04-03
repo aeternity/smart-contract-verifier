@@ -43,6 +43,7 @@ export class VerificationSupervisorService {
           newStatus = VerificationStatus.SUCCESS;
           await this.contractSubmissionsRepository.update(submission.id, {
             status: newStatus,
+            compiler: notification.compiler,
           });
           await this.contractsService.confirmSubmission(submission.id, {
             aci: notification.result,

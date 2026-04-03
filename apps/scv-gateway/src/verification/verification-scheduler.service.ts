@@ -52,7 +52,6 @@ export class VerificationSchedulerService {
       const verificationTask: VerificationTaskDto = {
         submissionId: submission.id,
         contractId: submission.contractId,
-        compiler: submission.compiler,
         entryFile: submission.entryFile,
         bytecode: submission.bytecode,
         encodedInitCallParameters: submission.encodedInitCallParameters,

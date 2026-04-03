@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SUPPORTED_LICENSES } from '../contracts.const';
-import { SUPPORTED_COMPILERS } from '../../verification/verification.const';
 
 export class VerifiedContractDto {
   @ApiProperty({
@@ -19,11 +18,10 @@ export class VerifiedContractDto {
   license: (typeof SUPPORTED_LICENSES)[number];
 
   @ApiProperty({
-    enum: SUPPORTED_COMPILERS,
-    example: SUPPORTED_COMPILERS[0],
+    example: '7.4.0',
     description: 'aesophia compiler version used to compile the contract',
   })
-  compiler: (typeof SUPPORTED_COMPILERS)[number];
+  compiler: string;
 
   @ApiProperty({
     description: 'Parameters used to initialize the contract',

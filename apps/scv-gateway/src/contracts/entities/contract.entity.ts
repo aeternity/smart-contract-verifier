@@ -12,7 +12,7 @@ export class Contract {
   @Column({ length: 127 })
   license: string;
 
-  @Column({ length: 63 })
+  @Column({ length: 63, nullable: true })
   compiler: string;
 
   @Column()

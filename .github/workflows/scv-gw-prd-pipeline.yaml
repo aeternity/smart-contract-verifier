@@ -2,8 +2,8 @@ name: Production Scv Gateway pipelines
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
     
 env:
   ENV: "prd"
@@ -16,10 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Production Scv Gateway pipelines
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 100
-          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
 
       - name: Get tags
         run: git fetch --tags origin
@@ -31,12 +30,10 @@ jobs:
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@master
-        with:
-          install: true
+        uses: docker/setup-buildx-action@v3
 
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-${{ env.ENV }}-buildx-${{ github.sha }}
@@ -44,17 +41,15 @@ jobs:
             ${{ runner.os }}-${{ env.ENV }}-buildx
 
       - name: Log in to dockerhub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3.3.0
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASS }}
 
       - name: Extract metadata for docker
-        if: |
-          github.event_name == 'push' ||
-          startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push'
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5.5.1
         with:
           images: aeternity/smart-contract-verifier
           tags: |
@@ -62,7 +57,7 @@ jobs:
 
       - name: Build and push docker image
         if: github.event_name == 'push'
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6.7.0
         with:
           context: .
           file: ./apps/scv-gateway/dev/Dockerfile
@@ -74,12 +69,12 @@ jobs:
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
 
       - name: Move cache
-        if: github.event_name == 'pull_request' && github.event.action == 'opened' || github.event.action == 'synchronize'
+        if: github.event_name == 'push'
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           repository: aeternity/gitops-apps-aelabs.git
           ref: prd
@@ -88,9 +83,9 @@ jobs:
           fetch-depth: 0
 
       - name: Production Deploy
-        uses: aeternity/ae-github-actions/argocd-deploy@v4
+        uses: aeternity/ae-github-actions/argocd-deploy@v7.4.0
         with:
-          git-sha: ${{ steps.git-sha.outputs.GIT_SHA }}
+          git-sha: ${{ github.sha }}
           url-prefix: ${{ steps.release_tag.outputs.TAG }}
           env: ${{ env.ENV }}
           app: ${{ env.APP }}

@@ -27,6 +27,7 @@
     "schema:drop": "npm run typeorm -- --dataSource=apps/scv-gateway/src/database/data-source.ts schema:drop"
   },
   "dependencies": {
+    "@aeternity/aepp-calldata": "^1.9.1",
     "@aeternity/aepp-sdk": "^13.2.2",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/class-validator": "^0.13.4",
@@ -41,8 +42,8 @@
     "@nestjs/typeorm": "^10.0.0",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.3",
-    "axios": "^1.6.5",
     "archiver": "^7.0.1",
+    "axios": "^1.6.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "reflect-metadata": "^0.1.13",

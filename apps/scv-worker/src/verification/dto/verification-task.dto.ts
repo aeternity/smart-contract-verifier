@@ -1,7 +1,7 @@
 export type VerificationTaskDto = {
   submissionId: string;
   contractId: string;
-  compiler: string;
+  compiler?: string;
   entryFile: string;
   bytecode: string;
   encodedInitCallParameters: string;
