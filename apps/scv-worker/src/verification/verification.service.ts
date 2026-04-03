@@ -35,7 +35,9 @@ export class VerificationService {
 
     // WRITE CONTRACT FILES FOR VERIFICATION
     try {
-      await exec(`rm -rf -- ${CONTRACT_DIRECTORY}* ${CONTRACT_DIRECTORY}.[!.]* ${CONTRACT_DIRECTORY}..?*`);
+      await exec(
+        `rm -rf -- ${CONTRACT_DIRECTORY}* ${CONTRACT_DIRECTORY}.[!.]* ${CONTRACT_DIRECTORY}..?*`,
+      );
 
       await Promise.all(
         task.sourceFiles.map(async (file) => {
