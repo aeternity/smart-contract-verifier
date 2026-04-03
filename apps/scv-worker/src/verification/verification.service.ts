@@ -12,7 +12,8 @@ import { promisify } from 'util';
 
 const exec = promisify(execCallback);
 
-const CONCTRACT_DIRECTORY = `/usr/src/aesophia_cli/contract/`;
+const CONTRACT_DIRECTORY = `/usr/src/contracts/`;
+const COMPILERS_BASE = `/usr/src/compilers/`;
 
 @Injectable()
 export class VerificationService {
@@ -30,13 +31,15 @@ export class VerificationService {
       status: VerificationStatus.FAIL,
     };
 
+    const cliPath = `${COMPILERS_BASE}${task.compiler}/aesophia_cli`;
+
     // WRITE CONTRACT FILES FOR VERIFICATION
     try {
-      await exec(`cd ${CONCTRACT_DIRECTORY} && rm -rf -- ..?* .[!.]* *`);
+      await exec(`rm -rf -- ${CONTRACT_DIRECTORY}* ${CONTRACT_DIRECTORY}.[!.]* ${CONTRACT_DIRECTORY}..?*`);
 
       await Promise.all(
         task.sourceFiles.map(async (file) => {
-          const filePath = path.resolve(CONCTRACT_DIRECTORY, file.filePath);
+          const filePath = path.resolve(CONTRACT_DIRECTORY, file.filePath);
 
           try {
             await mkdir(path.dirname(filePath), { recursive: true });
@@ -67,10 +70,10 @@ export class VerificationService {
     // GENERATE ACI
     try {
       await exec(
-        `cd ${CONCTRACT_DIRECTORY} && ../aesophia_cli --create_json_aci ${task.entryFile} -o _result.json`,
+        `cd ${CONTRACT_DIRECTORY} && ${cliPath} --create_json_aci ${task.entryFile} -o _result.json`,
       );
       const aci = await readFile(
-        path.resolve(CONCTRACT_DIRECTORY, '_result.json'),
+        path.resolve(CONTRACT_DIRECTORY, '_result.json'),
       );
       processingNotification.result = aci.toString();
     } catch (error) {
@@ -87,7 +90,7 @@ export class VerificationService {
     // VERIFY COMPILER VERSION
     try {
       const { stdout } = await exec(
-        `cd ${CONCTRACT_DIRECTORY} && ../aesophia_cli --compiled_by ${task.bytecode}`,
+        `${cliPath} --compiled_by ${task.bytecode}`,
       );
       const compilerVersion = stdout.trim();
       if (task.compiler !== compilerVersion) {
@@ -118,7 +121,7 @@ export class VerificationService {
     // VERIFY BYTECODE
     try {
       await exec(
-        `cd ${CONCTRACT_DIRECTORY} && ../aesophia_cli --validate ${task.bytecode} ${task.entryFile}`,
+        `cd ${CONTRACT_DIRECTORY} && ${cliPath} --validate ${task.bytecode} ${task.entryFile}`,
       );
     } catch (error) {
       processingNotification.result =
@@ -137,7 +140,7 @@ export class VerificationService {
     // DECODE INIT CALL PARAMETERS
     try {
       const { stdout } = await exec(
-        `cd ${CONCTRACT_DIRECTORY} && ../aesophia_cli --decode_calldata "${task.encodedInitCallParameters}" --calldata_fun "init" ${task.entryFile}`,
+        `cd ${CONTRACT_DIRECTORY} && ${cliPath} --decode_calldata "${task.encodedInitCallParameters}" --calldata_fun "init" ${task.entryFile}`,
       );
       const initCallParameters = stdout.replace('Decoded calldata:', '').trim();
       processingNotification.initCallParameters = initCallParameters;
