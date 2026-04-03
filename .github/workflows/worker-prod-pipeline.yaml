@@ -2,8 +2,8 @@ name: Production Scv Worker pipelines
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
     
 env:
   ENV: "prd"
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Production Pipeline Scv Worker
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
@@ -30,13 +30,10 @@ jobs:
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@master
-        # Only worked for us with this option on
-        with:
-          install: true
+        uses: docker/setup-buildx-action@v3
 
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           # Key is named differently to avoid collision
@@ -78,7 +75,7 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           repository: aeternity/gitops-apps-aelabs.git
           ref: prd
@@ -87,9 +84,9 @@ jobs:
           fetch-depth: 0
 
       - name: Production Deploy
-        uses: aeternity/ae-github-actions/argocd-deploy@v4
+        uses: aeternity/ae-github-actions/argocd-deploy@v7.4.0
         with:
-          git-sha: ${{ steps.git-sha.outputs.GIT_SHA }}
+          git-sha: ${{ github.sha }}
           url-prefix: ${{ steps.release_tag.outputs.TAG }}
           env: ${{ env.ENV }}
           app: ${{ env.APP }}
