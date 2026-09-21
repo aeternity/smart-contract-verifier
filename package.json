@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@aeternity/aepp-calldata": "^1.9.1",
-    "@aeternity/aepp-sdk": "^13.2.2",
+    "@aeternity/aepp-sdk": "^15.0.0",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/class-validator": "^0.13.4",
     "@nestjs/common": "^10.0.0",
