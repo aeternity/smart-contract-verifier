@@ -9,7 +9,7 @@ env:
   ENV: "prd"
   APP: "scv-gateway-testnet"
 
-concurrency: testnet_scv_production_environment
+concurrency: scv_production_environment
 
 jobs:
   main:
